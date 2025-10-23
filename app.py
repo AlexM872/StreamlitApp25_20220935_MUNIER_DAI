@@ -24,25 +24,41 @@ def get_drive_url():
     load_dotenv()
     return os.getenv("DRIVE_URL", "")
 
-@st.cache_data
+# Only load needed columns and filter rows to reduce memory usage
+NEEDED_COLUMNS = [
+    "annee_deces", "age", "sexeCategorical", "commnaiss", "prenom"
+]
+MIN_YEAR = 2015  # Example: only load data from 2015 onwards
+
+@st.cache_data(ttl=3600, max_entries=1)
 def load_parquet_from_drive():
     drive_url = get_drive_url()
     if not drive_url:
         return None
     try:
-        response = requests.get(drive_url)
+        response = requests.get(drive_url, stream=True)
         response.raise_for_status()
-        df = pd.read_parquet(BytesIO(response.content))
+        df = pd.read_parquet(BytesIO(response.content), columns=NEEDED_COLUMNS)
+        # Filter rows to reduce memory usage
+        df = df[df["annee_deces"] >= MIN_YEAR]
+        if len(df) > 1_000_000:
+            st.warning(f"Large dataset loaded ({len(df):,} rows). Consider using a smaller file or filtering more.")
         return df
     except Exception as e:
         st.warning(f"Could not load Parquet from DRIVE_URL: {e}")
         return None
 
-@st.cache_data
+@st.cache_data(ttl=3600, max_entries=1)
 def prepare_and_load_data():
     merge_data()
     cleaning()
-    return load_data()
+    df = load_data()
+    # Only keep needed columns and filter rows
+    df = df[NEEDED_COLUMNS]
+    df = df[df["annee_deces"] >= MIN_YEAR]
+    if len(df) > 1_000_000:
+        st.warning(f"Large dataset loaded ({len(df):,} rows). Consider using a smaller file or filtering more.")
+    return df
 
 # Try loading from remote Parquet first
 df = load_parquet_from_drive()
