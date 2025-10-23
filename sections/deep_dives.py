@@ -55,5 +55,5 @@ def display_deep_dives(df: pd.DataFrame):
     st.markdown("### Quick Analysis")
     st.markdown("This analysis of first names didn't really show a correlation between first names and mortality rates. The patterns observed are more reflective of the popularity of certain names during specific time periods rather than any direct influence on mortality.")
     st.markdown("If the first name is quite new, we can see that the average age at death can be very low due to natality deaths.")
-    st.markdown("For example: Thibault is a name that became popular in the 90s, so the average age at death is at 28. In the previous charts, when we filter the deaths with first name, we can observe that the age where most of `Thibault`s die is mostly 0, corresponding to natality deaths.")
+    st.markdown("For example:  `Thibault` is a name that became popular in the 90s, so the average age at death is at 28. In the previous charts, when we filter the deaths with first name, we can observe that the age where most of `Thibault`s die is mostly 0, corresponding to natality deaths.")
     st.markdown("But, as we know, natality deaths is most likely around 5% of total deaths. So, that means that most of the `Thibault`s are still alive.")

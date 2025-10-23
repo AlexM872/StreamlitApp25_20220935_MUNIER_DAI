@@ -29,14 +29,19 @@ This project provides a comprehensive analysis of over 9 million death records f
    ```
 
 
-3. **Data Preparation Workflow (Automatic & Cached)**
 
-  When you start the app, Streamlit automatically runs the full data pipeline:
-  - **Merges** all raw CSV files in `data/` into a single file (`Deces_merged.csv`).
-  - **Cleans and prepares** the merged data (`Deces_cleaned.csv` and `Deces_cleaned.parquet`).
-  - **Loads** the cleaned data for analysis and visualization.
+3. **Data Loading Workflow**
 
-  This process is **cached** using Streamlit's `@st.cache_data` decorator, so it only runs once per session (or when the source files change). This makes the app fast and efficient for all users and interactions.
+   When you start the app, Streamlit will attempt to load the data in one of two ways:
+
+   - **Remote Parquet file**
+     - If a `.env` file exists in the project root and contains a `DRIVE_URL` variable (e.g., a Dropbox direct download link to the Parquet file), the app will download and load the data from this remote file.
+
+   - **Local merge and cleaning (fallback):**
+     - If `DRIVE_URL` is not set or the remote file cannot be loaded, the app will automatically merge all raw CSV files in the `data/` folder, clean and process the data, and generate the cleaned files (`Deces_cleaned.csv` and `Deces_cleaned.parquet`).
+     - This ensures the app works even if no remote file is available.
+
+   The data preparation and loading process is **cached** using Streamlit's `@st.cache_data` decorator, so it only runs once per session (or when the source files change).
 
   **You do not need to run any manual data preparation steps.**
 

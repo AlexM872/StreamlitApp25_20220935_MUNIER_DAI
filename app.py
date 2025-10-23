@@ -1,9 +1,12 @@
 # app.py
 import streamlit as st
+import pandas as pd
+import requests
+import os
+from io import BytesIO
+from dotenv import load_dotenv
 from utils.io import merge_data, load_data_prep, load_data
 from utils.prep import cleaning
-st.set_page_config(page_title="Deaths in France Analysis", layout="wide")
-
 st.set_page_config(page_title="Deaths in France Analysis", layout="wide")
 
 from sections.intro import display_intro
@@ -11,13 +14,36 @@ from sections.overview import display_overview
 from sections.deep_dives import display_deep_dives
 from sections.conclusion import display_conclusion
 
+# Load .env
+load_dotenv()
+DRIVE_URL = os.getenv("DRIVE_URL", "")
+
+@st.cache_data
+def load_parquet_from_drive():
+    if not DRIVE_URL:
+        return None
+    try:
+        response = requests.get(DRIVE_URL)
+        response.raise_for_status()
+        df = pd.read_parquet(BytesIO(response.content))
+        return df
+    except Exception as e:
+        st.warning(f"Could not load Parquet from DRIVE_URL: {e}")
+        return None
+
 @st.cache_data
 def prepare_and_load_data():
     merge_data()
     cleaning()
     return load_data()
 
-df = prepare_and_load_data()
+# Try loading from Google Drive first
+df = load_parquet_from_drive()
+if df is None:
+    df = prepare_and_load_data()
+if df is None:
+    st.error("No data available. Please check DRIVE_URL or local files.")
+    st.stop()
 
 # --- Sidebar with filters ---
 st.sidebar.header("Filters")
