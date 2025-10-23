@@ -25,9 +25,6 @@ def get_drive_url():
     return os.getenv("DRIVE_URL", "")
 
 # Only load needed columns and filter rows to reduce memory usage
-NEEDED_COLUMNS = [
-    "annee_deces", "age", "sexeCategorical", "commnaiss", "prenom"
-]
 MIN_YEAR = 2015  # Example: only load data from 2015 onwards
 
 @st.cache_data(ttl=3600, max_entries=1)
@@ -38,7 +35,7 @@ def load_parquet_from_drive():
     try:
         response = requests.get(drive_url, stream=True)
         response.raise_for_status()
-        df = pd.read_parquet(BytesIO(response.content), columns=NEEDED_COLUMNS)
+        df = pd.read_parquet(BytesIO(response.content))
         # Filter rows to reduce memory usage
         df = df[df["annee_deces"] >= MIN_YEAR]
         if len(df) > 1_000_000:
