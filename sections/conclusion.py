@@ -22,13 +22,15 @@ def display_conclusion():
     st.markdown("### Learnings")
     st.success(
         """
-        1.  **COVID-19 Impact :** A mortality peak in 2020, visible on the evolution curve, confirms the significant demographic impact of the COVID-19 pandemic in France. We can see that after 2020, the mortality rate seems to stabilize at a higher level than pre-pandemic years, possibly indicating lasting effects.
+        1.  **COVID-19 Impact:** The analysis confirms significant demographic impact from the COVID-19 pandemic in France during 2020-2022, with clear mortality peaks corresponding to pandemic waves (especially the first one).
 
-        2.  **Demographic Disparities :** The gender analysis highlights a consistent gap in life expectancy, with women living on average longer than men.
+        2.  **Demographic Disparities:** The gender analysis highlights a persistent gap in life expectancy, with women living on average longer than men, even during the COVID period.
 
-        3.  **Seasonal cycles :** Beyond crises, the data reveals seasonal mortality patterns, with peaks during winter months likely linked to flu epidemics. The peaks are particularly pronounced in 2017 and 2022 and totally make heatwaves effects negligible on mortality in France.
+        3.  **Generational and Geographic Patterns:** Older generations and more populated regions (e.g., Île-de-France) are more represented in death counts, reflecting both demographic structure and pandemic impact.
 
-        For now, COVID-19 seems to have passed its peak impact, but continued monitoring is essential to understand its long-term demographic effects.
-        Deaths data, when analyzed carefully, can provide valuable insights into public health trends and inform future preparedness strategies.
+        4.  **First Name Analysis:** Patterns in first name statistics reflect generational popularity and natality deaths, not direct links to mortality risk.
+
+        Continued monitoring is essential to understand the long-term demographic effects of COVID-19. Careful analysis of deaths data provides valuable insights for public health and preparedness.
+        For further analysis we may need data on population and deaths for years before 2020.
         """
     )

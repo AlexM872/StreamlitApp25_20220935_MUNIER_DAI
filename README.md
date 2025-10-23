@@ -1,13 +1,12 @@
-# 📊 Deaths in France Analysis (2010-2024)
+# 📊 Deaths in France Analysis (2020-2022)
 
-An interactive Streamlit dashboard analyzing mortality data in France from 2010 to 2024, with insights into demographic trends, health crises impacts, and geographic patterns.
+An interactive Streamlit dashboard analyzing mortality data in France during the COVID period (2020–2022), with insights into demographic trends, pandemic impacts, and geographic patterns.
 
 ## 🎯 Overview
 
-This project provides a comprehensive analysis of over 9 million death records from INSEE (Institut national de la statistique et des études économiques), exploring:
+This project provides a focused analysis of death records from INSEE (Institut national de la statistique et des études économiques) for 2020–2022, exploring:
 
-- **Temporal trends**: Evolution of mortality over 15 years
-- **COVID-19 impact**: Excess mortality analysis and age-specific effects
+- **COVID-19 impact**: Excess mortality and age-specific effects
 - **Demographics**: Age distribution, gender differences, and generational patterns
 - **Geographic insights**: Interactive map showing deaths by French department
 - **Cultural analysis**: First name trends
@@ -30,27 +29,19 @@ This project provides a comprehensive analysis of over 9 million death records f
 
 
 
-3. **Data Loading Workflow**
+3. **Data Preparation Workflow (Automatic & Cached)**
 
-   When you start the app, Streamlit will attempt to load the data in one of two ways:
+  When you start the app, Streamlit automatically runs the data pipeline:
+  - **Loads and cleans** only the raw CSV files for 2020–2022 in `data/`.
+  - **Saves** the cleaned data as `Deces_cleaned.parquet` for fast future access.
+  - **Loads** the cleaned data for analysis and visualization.
 
-   - **Remote Parquet file**
-     - If a `.env` file exists in the project root and contains a `DRIVE_URL` variable (e.g., a Dropbox direct download link to the Parquet file), the app will download and load the data from this remote file.
-
-   - **Local merge and cleaning (fallback):**
-     - If `DRIVE_URL` is not set or the remote file cannot be loaded, the app will automatically merge all raw CSV files in the `data/` folder, clean and process the data, and generate the cleaned files (`Deces_cleaned.csv` and `Deces_cleaned.parquet`).
-     - This ensures the app works even if no remote file is available.
-
-   The data preparation and loading process is **cached** using Streamlit's `@st.cache_data` decorator, so it only runs once per session (or when the source files change).
+  This process is **cached** using Streamlit's `@st.cache_data` decorator, so it only runs once per session (or when the source files change). This makes the app fast and efficient for all users and interactions.
 
   **You do not need to run any manual data preparation steps.**
 
-  If you prefer to run the steps manually:
+  If you prefer to run the cleaning step manually:
   ```bash
-  # Merge raw data files
-  python -c "from utils.io import merge_data; merge_data()"
-
-  # Clean and prepare data
   python -c "from utils.prep import cleaning; cleaning()"
   ```
 
@@ -70,9 +61,9 @@ project/
 ├── README.md                   # This file
 │
 ├── data/                       # Data directory
-│   ├── Deces_2010.csv         # Raw data files (2010-2024)
-│   ├── ...
-│   ├── Deces_merged.csv       # Merged raw data
+│   ├── Deces_2020.csv         # Raw data files (2020-2022)
+│   ├── Deces_2021.csv
+│   ├── Deces_2022.csv
 │   └── Deces_cleaned.parquet  # Cleaned, optimized data
 │
 ├── sections/                   # Dashboard sections
@@ -92,7 +83,7 @@ project/
 ## 🎨 Features
 
 ### Interactive Filters (Sidebar)
-- **Year range**: Select specific time periods (2010-2024)
+- **Year range**: Data restricted to 2020–2022 (COVID period)
 - **Gender**: Filter by Male, Female, or All
 - **Age groups**: Predefined age brackets (0-19, 20-39, 40-59, 60-74, 75-89, 90+)
 - **Place of birth**: Search by location name
@@ -101,15 +92,15 @@ project/
 ### Visualizations
 
 #### 📈 Overview Section
-- **KPI Metrics**: Total deaths, average age, median age, life expectancy by gender
+- **KPI Metrics**: Total deaths, average age, median age, life expectancy by gender (2020–2022)
 - **Timeline**: Monthly deaths with COVID-19 wave annotations
 
 #### 🔬 Deep Dives Section
-1. **Excess Mortality Analysis**: Comparison with 2012-2019 baseline
-2. **COVID-19 Age Impact**: Age-specific mortality during pandemic
+1. **Excess Mortality Analysis**: Comparison with published baseline (INED)
+2. **COVID-19 Age Impact**: Age-specific mortality during pandemic (2020–2022 only)
 3. **Generational Patterns**: Deaths by birth decade
 4. **Country of Birth**: Distribution of foreign-born individuals
-5. **🗺️ Geographic Map**: Interactive choropleth of deaths by French department
+5. **🗺️ Geographic Map**: Interactive map of deaths by French department
 6. **Age Pyramid**: Gender-based age distribution at death
 7. **First Name Analysis**: Popular names and age patterns
 
@@ -117,9 +108,9 @@ project/
 
 **Source**: [Fichier des personnes décédées](https://www.data.gouv.fr/fr/datasets/fichier-des-personnes-decedees/) - INSEE via data.gouv.fr
 
-**Coverage**: 2010-2024
+**Coverage**: 2020–2022
 
-**Records**: ~9 million death certificates
+**Records**: ~2 million death certificates
 
 **Key Fields**:
 - Personal info: Name, first name, gender, birth/death dates
@@ -136,7 +127,7 @@ The data undergoes rigorous cleaning (see `utils/prep.py`):
 4. **Date parsing**: Convert string dates to datetime objects
 5. **Age validation**: Filter unrealistic ages (< 0 or > 122 years)
 6. **Gender mapping**: Convert codes to readable labels
-7. **Time filtering**: Focus on 2010-2024 period
+7. **Time filtering**: Focus on 2020–2022 (COVID period)
 8. **Optimization**: Save as Parquet for performance
 
 ## 📦 Dependencies

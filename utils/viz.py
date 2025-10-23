@@ -34,41 +34,46 @@ def plot_age_distribution_by_gender(df: pd.DataFrame):
     st.plotly_chart(fig, use_container_width=True)
 
 def plot_mortality_over_time(df: pd.DataFrame):
-    """Show evolution of mortality with detailed COVID waves."""
-    monthly_deaths = df.groupby('mois_deces').size().reset_index(name='count')
-    fig = px.line(monthly_deaths, x='mois_deces', y='count', title="Monthly Deaths Evolution in France",
-                  labels={'mois_deces': 'Month', 'count': 'Number of Deaths'})
+    """Show evolution of mortality with detailed COVID waves (2020-2022 only)."""
+    # Daily deaths for more granular COVID impact analysis
+    daily_deaths = df.groupby('datedeces').size().reset_index(name='count')
+    fig = px.line(
+        daily_deaths,
+        x='datedeces',
+        y='count',
+        title="Daily Deaths in France (2020-2022)",
+        labels={'datedeces': 'Date of Death', 'count': 'Number of Deaths'}
+    )
 
-    # Improvement: Add multiple waves for better context
-    fig.add_vrect(x0="2020-03", x1="2020-05", fillcolor="#FFADAD", opacity=0.3, line_width=0, annotation_text="1st Wave")
-    fig.add_vrect(x0="2020-10", x1="2021-01", fillcolor="#FFADAD", opacity=0.3, line_width=0, annotation_text="2nd Wave")
-    fig.add_vrect(x0="2021-08", x1="2021-10", fillcolor="#FFADAD", opacity=0.3, line_width=0, annotation_text="3rd Wave (Delta)")
+    # Highlight major COVID waves (approximate dates)
+    fig.add_vrect(x0="2020-03-15", x1="2020-05-15", fillcolor="#FFADAD", opacity=0.3, line_width=0, annotation_text="1st Wave")
+    fig.add_vrect(x0="2020-10-15", x1="2021-01-15", fillcolor="#FFADAD", opacity=0.3, line_width=0, annotation_text="2nd Wave")
+    fig.add_vrect(x0="2021-08-01", x1="2021-10-01", fillcolor="#FFADAD", opacity=0.3, line_width=0, annotation_text="3rd Wave (Delta)")
 
     st.plotly_chart(fig, use_container_width=True)
 
 def plot_excess_mortality(df: pd.DataFrame):
-    """Calculate and show monthly excess mortality compared to a pre-pandemic baseline."""
-    # protection against insufficient data
-    if df[df['annee_deces'] >= 2020].empty or df[(df['annee_deces'] >= 2015) & (df['annee_deces'] <= 2019)].empty:
-        st.info("Not enough data in the selected range to calculate excess mortality.")
-        return
-
-
-    # code for the plot
-    baseline_df = df[(df['annee_deces'] >= 2015) & (df['annee_deces'] <= 2019)].copy()
-    baseline_df['mois'] = baseline_df['datedeces'].dt.month
-    baseline_monthly = baseline_df.groupby('mois').size().reset_index(name='baseline_avg')
-    baseline_monthly['baseline_avg'] /= 5
+    """Calculate and show monthly excess mortality for the COVID period (2020-2022)."""
+    # Use average monthly deaths from Ined (2015-2019): 50,048
+    # Source: Institut national d'études démographiques (Ined)
+    st.warning("Warning: This chart is irrelevant if filters are applied, because the monthly average is constant.")
+    st.info("The average number of deaths per month in France between 2015 and 2019 was approximately 50,048. This was calculated by summing annual deaths from Ined and dividing by 60 months.\n\nAnnual deaths: 2015: 593,680 | 2016: 593,865 | 2017: 606,274 | 2018: 609,648 | 2019: 599,408.\n\nSource: Institut national d'études démographiques (Ined), https://www.ined.fr/en/everything_about_population/data/france/mortality-deaths/number-deaths/.")
 
     covid_df = df[df['annee_deces'] >= 2020].copy()
     covid_monthly = covid_df.groupby('mois_deces').size().reset_index(name='deces_2020_plus')
     covid_monthly['mois'] = pd.to_datetime(covid_monthly['mois_deces']).dt.month
 
+    # Create baseline DataFrame
+    baseline_monthly = pd.DataFrame({
+        'mois': list(range(1, 13)),
+        'baseline_avg': [50048] * 12
+    })
+
     comparison_df = pd.merge(covid_monthly, baseline_monthly, on='mois', how='left')
     comparison_df['surmortalite'] = comparison_df['deces_2020_plus'] - comparison_df['baseline_avg']
 
     fig = px.bar(comparison_df, x='mois_deces', y='surmortalite',
-                 title="Excess Mortality Compared to 2015-2019 Average",
+                 title="Excess Mortality Compared to 2015-2019 Monthly Average (Source: Ined)",
                  labels={'mois_deces': 'Months', 'surmortalite': 'Excess Deaths'})
     fig.update_traces(marker_color=['red' if val > 0 else 'green' for val in comparison_df['surmortalite']])
     st.plotly_chart(fig, use_container_width=True)
@@ -116,59 +121,61 @@ def plot_prenom_analysis(df: pd.DataFrame):
 
 def plot_covid_age_impact(df: pd.DataFrame):
     """
-    Shows a superimposed bar chart comparing the average annual deaths by age 
-    during the COVID period vs. a pre-COVID baseline.
+    Shows the age distribution of deaths for each major COVID wave (2020-2022 only).
+    Reveals which age groups were most affected during each wave using only available data.
     """
+    st.info("This chart shows the age distribution of deaths for each major COVID wave in France (2020-2022). It highlights which age groups were most affected during each wave, using only available data.")
+    # Define wave periods (approximate)
+    wave_periods = {
+        '1st Wave (Spring 2020)': ('2020-03-15', '2020-05-15'),
+        '2nd Wave (Winter 2020-21)': ('2020-10-15', '2021-01-15'),
+        '3rd Wave (Delta, Summer 2021)': ('2021-08-01', '2021-10-01'),
+        'Other (Rest of 2020-2022)': None
+    }
 
-    # Define the periods
-    pre_covid_df = df[(df['annee_deces'] >= 2012) & (df['annee_deces'] <= 2019)]
-    covid_df = df[(df['annee_deces'] >= 2020) & (df['annee_deces'] <= 2022)]
+    age_distributions = {}
+    for wave, period in wave_periods.items():
+        if period is not None:
+            start, end = period
+            mask = (df['datedeces'] >= pd.to_datetime(start)) & (df['datedeces'] <= pd.to_datetime(end))
+            age_distributions[wave] = df.loc[mask, 'age'].value_counts().sort_index()
+        else:
+            # All other dates not in defined waves
+            mask = ~(
+                ((df['datedeces'] >= pd.to_datetime('2020-03-15')) & (df['datedeces'] <= pd.to_datetime('2020-05-15')))
+                | ((df['datedeces'] >= pd.to_datetime('2020-10-15')) & (df['datedeces'] <= pd.to_datetime('2021-01-15')))
+                | ((df['datedeces'] >= pd.to_datetime('2021-08-01')) & (df['datedeces'] <= pd.to_datetime('2021-10-01')))
+            )
+            age_distributions[wave] = df.loc[mask, 'age'].value_counts().sort_index()
 
-    # Check if there is enough data for a meaningful comparison
-    if pre_covid_df.empty or covid_df.empty:
-        st.info("Not enough data in the selected range to compare pre- and post-pandemic periods.")
-        return
+    # Prepare data for plotting
+    plot_df = pd.DataFrame()
+    for wave, dist in age_distributions.items():
+        temp = pd.DataFrame({'age': dist.index, 'deaths': dist.values, 'wave': wave})
+        plot_df = pd.concat([plot_df, temp], ignore_index=True)
 
-    # Calculate the average annual deaths per age for each period
-    # We divide by the number of years in each period to make them comparable
-    pre_covid_counts = pre_covid_df['age'].value_counts().sort_index() / 8
-    covid_counts = covid_df['age'].value_counts().sort_index() / 3
-
-    # Combine the data into a single DataFrame for plotting
-    comparison_df = pd.DataFrame({
-        'Pre-COVID (Avg)': pre_covid_counts,
-        'COVID Period (Avg)': covid_counts
-    }).reset_index().rename(columns={'index': 'age'})
-
-    # Melt the DataFrame to make it suitable for Plotly Express (long format)
-    plot_df = comparison_df.melt(id_vars='age', var_name='Period', value_name='Average Annual Deaths')
-
-    # Create the superimposed bar chart
-    fig = px.bar(
+    # Plot
+    fig = px.line(
         plot_df,
         x='age',
-        y='Average Annual Deaths',
-        color='Period',
-        barmode='overlay', # This superimposes the bars
-        title="Average Annual Deaths by Age: COVID vs. Pre-COVID",
-        labels={'age': 'Age at Death', 'Average Annual Deaths': 'Average Number of Deaths per Year'}
+        y='deaths',
+        color='wave',
+        title="Age Distribution of Deaths by COVID Wave (2020-2022)",
+        labels={'age': 'Age at Death', 'deaths': 'Number of Deaths', 'wave': 'COVID Wave'}
     )
-    
-    # Add opacity to see both distributions
-    fig.update_traces(opacity=0.75)
-    
+    fig.update_layout(xaxis_title='Age at Death', yaxis_title='Number of Deaths')
     st.plotly_chart(fig, use_container_width=True)
 
 def plot_deaths_by_department_map(df: pd.DataFrame):
     """
-    Displays a choropleth map of France showing deaths by department (d�partement).
-    Uses the first 2 digits of lieunaiss code to determine department.
+    Displays a choropleth map of France showing deaths by department.
+    Uses the first 2 digits of lieudeces code to determine department.
     """
-    st.subheader(" Geographic Distribution: Deaths by Department of Birth")
+    st.subheader(" Geographic Distribution: Deaths by Department of Death")
     
-    # Extract department code from lieunaiss (first 2 digits)
+    # Extract department code from lieudeces (first 2 digits)
     df_map = df.copy()
-    df_map['dept_code'] = df_map['lieunaiss'].astype(str).str[:2]
+    df_map['dept_code'] = df_map['lieudeces'].astype(str).str[:2]
     
     # Filter out invalid department codes (only keep 01-95 and 2A, 2B for Corsica)
     valid_depts = [f"{i:02d}" for i in range(1, 96)]
@@ -217,7 +224,7 @@ def plot_deaths_by_department_map(df: pd.DataFrame):
         hover_data={'dept_code': True, 'deaths': ':,'},
         color_continuous_scale='YlOrRd',
         labels={'deaths': 'Number of Deaths'},
-        title='Deaths by Department of Birth (2010-2024)'
+        title='Deaths by Department of Death (2020-2022)'
     )
     
     # Update map layout to focus on France
