@@ -51,7 +51,6 @@ def prepare_and_load_data():
     cleaning()
     df = load_data()
     # Only keep needed columns and filter rows
-    df = df[NEEDED_COLUMNS]
     df = df[df["annee_deces"] >= MIN_YEAR]
     if len(df) > 1_000_000:
         st.warning(f"Large dataset loaded ({len(df):,} rows). Consider using a smaller file or filtering more.")
