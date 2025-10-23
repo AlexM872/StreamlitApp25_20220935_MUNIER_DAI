@@ -14,16 +14,23 @@ from sections.overview import display_overview
 from sections.deep_dives import display_deep_dives
 from sections.conclusion import display_conclusion
 
-# Load .env
-load_dotenv()
-DRIVE_URL = os.getenv("DRIVE_URL", "")
+# Get DRIVE_URL from st.secrets (Streamlit Cloud) or .env (local)
+def get_drive_url():
+    # Try Streamlit secrets first
+    drive_url = st.secrets.get("DRIVE_URL", "")
+    if drive_url:
+        return drive_url
+    # Fallback to .env locally
+    load_dotenv()
+    return os.getenv("DRIVE_URL", "")
 
 @st.cache_data
 def load_parquet_from_drive():
-    if not DRIVE_URL:
+    drive_url = get_drive_url()
+    if not drive_url:
         return None
     try:
-        response = requests.get(DRIVE_URL)
+        response = requests.get(drive_url)
         response.raise_for_status()
         df = pd.read_parquet(BytesIO(response.content))
         return df
@@ -37,7 +44,7 @@ def prepare_and_load_data():
     cleaning()
     return load_data()
 
-# Try loading from Google Drive first
+# Try loading from remote Parquet first
 df = load_parquet_from_drive()
 if df is None:
     df = prepare_and_load_data()
