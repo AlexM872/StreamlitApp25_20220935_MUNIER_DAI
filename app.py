@@ -25,7 +25,7 @@ def get_drive_url():
     return os.getenv("DRIVE_URL", "")
 
 # Only load needed columns and filter rows to reduce memory usage
-NEEDED_COLUMNS = ["annee_naiss", "annee_deces", "age", "sexeCategorical", "commnaiss", "prenom"]
+NEEDED_COLUMNS = ["annee_naiss", "annee_deces", "age", "sexeCategorical", "commnaiss", "prenom", "mois_deces"]
 MIN_YEAR = 2015  # Example: only load data from 2015 onwards
 
 @st.cache_data(ttl=3600, max_entries=1)
