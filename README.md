@@ -2,6 +2,8 @@
 
 An interactive Streamlit dashboard analyzing mortality data in France during the COVID period (2020–2022), with insights into demographic trends, pandemic impacts, and geographic patterns.
 
+Website: [https://app25-20220935-munier-dai.streamlit.app/](https://app25-20220935-munier-dai.streamlit.app/)
+
 ## 🎯 Overview
 
 This project provides a focused analysis of death records from INSEE (Institut national de la statistique et des études économiques) for 2020–2022, exploring:
