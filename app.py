@@ -30,9 +30,9 @@ st.sidebar.header("Filters")
 min_year, max_year = 2020, 2022
 min_age, max_age = int(df['age'].min()), int(df['age'].max())
 
-# Sex filter
-sex_options = ['All'] + df['sexeCategorical'].unique().tolist()
-selected_sex = st.sidebar.selectbox("Sex", sex_options)
+# Gender filter
+gender_options = ['All'] + df['sexeCategorical'].unique().tolist()
+selected_gender = st.sidebar.selectbox("Gender", gender_options)
 
 # Filter by place of birth
 commune_input = st.sidebar.text_input("Search for a place of birth")
@@ -58,8 +58,8 @@ age_range = age_group_options[selected_age_group]
 # Filters
 df_filtered = df[(df['annee_deces'] >= 2020) & (df['annee_deces'] <= 2022)]
 
-if selected_sex != 'All':
-    df_filtered = df_filtered[df_filtered['sexeCategorical'] == selected_sex]
+if selected_gender != 'All':
+    df_filtered = df_filtered[df_filtered['sexeCategorical'] == selected_gender]
 
 # Apply place of birth filter if user entered text
 if commune_input:
